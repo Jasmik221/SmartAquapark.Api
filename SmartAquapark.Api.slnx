@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="SmartAquapark.Api/SmartAquapark.Api.csproj" />
+  <Project Path="SmartAquapark.Application/SmartAquapark.Application.csproj" />
+  <Project Path="SmartAquapark.Domain/SmartAquapark.Domain.csproj" />
+  <Project Path="SmartAquapark.Infrastructure/SmartAquapark.Infrastructure.csproj" />
+</Solution>
