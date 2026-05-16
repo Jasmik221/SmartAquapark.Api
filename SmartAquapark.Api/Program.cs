@@ -1,7 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using SmartAquapark.Infrastructure.Persistence;
-
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using SmartAquapark.Application.Validators;
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddFluentValidationAutoValidation();
+
+builder.Services.AddValidatorsFromAssemblyContaining<CreateZoneDtoValidator>();
 
 builder.Services.AddControllers();
 

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SmartAquapark.Application.DTOs;
 using SmartAquapark.Domain.Entities;
 using SmartAquapark.Infrastructure.Persistence;
+using SmartAquapark.Application.DTOs;
 
 namespace SmartAquapark.Api.Controllers;
 
@@ -18,11 +19,22 @@ public class ZonesController : ControllerBase
     }
 
     [HttpGet]
+    [HttpGet]
     public async Task<IActionResult> GetAll()
     {
         var zones = await _context.Zones.ToListAsync();
 
-        return Ok(zones);
+        var result = zones.Select(z => new ZoneResponseDto
+        {
+            Id = z.Id,
+            Name = z.Name,
+            Description = z.Description,
+            CapacityLimit = z.CapacityLimit,
+            CurrentPeopleCount = z.CurrentPeopleCount,
+            IsActive = z.IsActive
+        });
+
+        return Ok(result);
     }
 
     [HttpGet("{id}")]
