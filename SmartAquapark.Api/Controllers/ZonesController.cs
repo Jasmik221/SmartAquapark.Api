@@ -67,4 +67,36 @@ public class ZonesController : ControllerBase
             new { id = zone.Id },
             zone);
     }
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, UpdateZoneDto dto)
+    {
+        var zone = await _context.Zones.FindAsync(id);
+
+        if (zone == null)
+            return NotFound();
+
+        zone.Name = dto.Name;
+        zone.Description = dto.Description;
+        zone.CapacityLimit = dto.CapacityLimit;
+        zone.IsActive = dto.IsActive;
+
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var zone = await _context.Zones.FindAsync(id);
+
+        if (zone == null)
+            return NotFound();
+
+        _context.Zones.Remove(zone);
+
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
 }
