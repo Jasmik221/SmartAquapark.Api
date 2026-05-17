@@ -4,6 +4,7 @@ using SmartAquapark.Application.DTOs;
 using SmartAquapark.Domain.Entities;
 using SmartAquapark.Infrastructure.Persistence;
 using SmartAquapark.Application.DTOs;
+using SmartAquapark.Application.Interfaces;
 
 namespace SmartAquapark.Api.Controllers;
 
@@ -11,36 +12,25 @@ namespace SmartAquapark.Api.Controllers;
 [Route("api/[controller]")]
 public class ZonesController : ControllerBase
 {
-    private readonly AquaparkDbContext _context;
+    private readonly IZoneService _zoneService;
 
-    public ZonesController(AquaparkDbContext context)
+    public ZonesController(IZoneService zoneService)
     {
-        _context = context;
+        _zoneService = zoneService;
     }
 
     [HttpGet]
-    [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var zones = await _context.Zones.ToListAsync();
+        var zones = await _zoneService.GetAllAsync();
 
-        var result = zones.Select(z => new ZoneResponseDto
-        {
-            Id = z.Id,
-            Name = z.Name,
-            Description = z.Description,
-            CapacityLimit = z.CapacityLimit,
-            CurrentPeopleCount = z.CurrentPeopleCount,
-            IsActive = z.IsActive
-        });
-
-        return Ok(result);
+        return Ok(zones);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var zone = await _context.Zones.FindAsync(id);
+        var zone = await _zoneService.GetByIdAsync(id);
 
         if (zone == null)
             return NotFound();
@@ -51,36 +41,21 @@ public class ZonesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(CreateZoneDto dto)
     {
-        var zone = new Zone
-        {
-            Name = dto.Name,
-            Description = dto.Description,
-            CapacityLimit = dto.CapacityLimit
-        };
-
-        _context.Zones.Add(zone);
-
-        await _context.SaveChangesAsync();
+        var zone = await _zoneService.CreateAsync(dto);
 
         return CreatedAtAction(
             nameof(GetById),
             new { id = zone.Id },
             zone);
     }
+
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, UpdateZoneDto dto)
     {
-        var zone = await _context.Zones.FindAsync(id);
+        var updated = await _zoneService.UpdateAsync(id, dto);
 
-        if (zone == null)
+        if (!updated)
             return NotFound();
-
-        zone.Name = dto.Name;
-        zone.Description = dto.Description;
-        zone.CapacityLimit = dto.CapacityLimit;
-        zone.IsActive = dto.IsActive;
-
-        await _context.SaveChangesAsync();
 
         return NoContent();
     }
@@ -88,14 +63,10 @@ public class ZonesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var zone = await _context.Zones.FindAsync(id);
+        var deleted = await _zoneService.DeleteAsync(id);
 
-        if (zone == null)
+        if (!deleted)
             return NotFound();
-
-        _context.Zones.Remove(zone);
-
-        await _context.SaveChangesAsync();
 
         return NoContent();
     }
