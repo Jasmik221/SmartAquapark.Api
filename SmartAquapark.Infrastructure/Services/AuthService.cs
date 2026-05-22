@@ -7,6 +7,11 @@ using SmartAquapark.Application.DTOs;
 using SmartAquapark.Application.Interfaces;
 using SmartAquapark.Domain.Entities;
 using SmartAquapark.Infrastructure.Persistence;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 
 namespace SmartAquapark.Infrastructure.Services;
 
@@ -14,9 +19,12 @@ public class AuthService : IAuthService
 {
     private readonly AquaparkDbContext _context;
 
-    public AuthService(AquaparkDbContext context)
+    private readonly IConfiguration _configuration;
+
+    public AuthService(AquaparkDbContext context, IConfiguration configuration)
     {
         _context = context;
+        _configuration = configuration;
     }
 
     public async Task<AuthResponseDto?> RegisterAsync(RegisterUserDto dto)
@@ -44,7 +52,7 @@ public class AuthService : IAuthService
 
         return new AuthResponseDto
         {
-            Token = "REGISTER_SUCCESS"
+            Token = GenerateJwtToken(user)
         };
     }
 
@@ -65,7 +73,34 @@ public class AuthService : IAuthService
 
         return new AuthResponseDto
         {
-            Token = "LOGIN_SUCCESS"
+            Token = GenerateJwtToken(user)
         };
+    }
+
+    private string GenerateJwtToken(User user)
+    {
+        var jwtKey = _configuration["Jwt:Key"];
+        var jwtIssuer = _configuration["Jwt:Issuer"];
+        var jwtAudience = _configuration["Jwt:Audience"];
+        var expirationMinutes = int.Parse(_configuration["Jwt:ExpirationMinutes"]!);
+
+        var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new Claim(ClaimTypes.Email, user.Email),
+        new Claim(ClaimTypes.Role, user.Role.ToString())
+    };
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey!));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var token = new JwtSecurityToken(
+            issuer: jwtIssuer,
+            audience: jwtAudience,
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(expirationMinutes),
+            signingCredentials: credentials);
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }
