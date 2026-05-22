@@ -17,7 +17,7 @@ builder.Services.AddDbContext<AquaparkDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IZoneService, ZoneService>();
-
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen();

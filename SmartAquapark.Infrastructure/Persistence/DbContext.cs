@@ -15,6 +15,7 @@ public class AquaparkDbContext : DbContext
     }
 
     public DbSet<Zone> Zones => Set<Zone>();
+    public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -46,6 +47,43 @@ public class AquaparkDbContext : DbContext
             entity.Property(x => x.IsActive)
                 .HasColumnName("aktywna")
                 .HasDefaultValue(true);
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.ToTable("users");
+
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Id)
+                .HasColumnName("id");
+
+            entity.Property(x => x.FirstName)
+                .HasColumnName("first_name")
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(x => x.LastName)
+                .HasColumnName("last_name")
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(x => x.Email)
+                .HasColumnName("email")
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.HasIndex(x => x.Email)
+                .IsUnique();
+
+            entity.Property(x => x.PasswordHash)
+                .HasColumnName("password_hash")
+                .IsRequired();
+
+            entity.Property(x => x.Role)
+                .HasColumnName("role")
+                .HasConversion<string>()
+                .IsRequired();
         });
     }
 }
