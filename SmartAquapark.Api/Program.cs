@@ -22,7 +22,7 @@ builder.Services.AddDbContext<AquaparkDbContext>(options =>
 
 builder.Services.AddScoped<IZoneService, ZoneService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-
+builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

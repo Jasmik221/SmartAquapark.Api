@@ -15,6 +15,7 @@ public class AquaparkDbContext : DbContext
     }
 
     public DbSet<Zone> Zones => Set<Zone>();
+    public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -47,6 +48,51 @@ public class AquaparkDbContext : DbContext
             entity.Property(x => x.IsActive)
                 .HasColumnName("aktywna")
                 .HasDefaultValue(true);
+        });
+        modelBuilder.Entity<Ticket>(entity =>
+        {
+            entity.ToTable("tickets");
+
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Id)
+                .HasColumnName("id");
+
+            entity.Property(x => x.VerificationCode)
+                .HasColumnName("verification_code")
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.HasIndex(x => x.VerificationCode)
+                .IsUnique();
+
+            entity.Property(x => x.CreatedAt)
+                .HasColumnName("created_at")
+                .IsRequired();
+
+            entity.Property(x => x.ValidUntil)
+                .HasColumnName("valid_until")
+                .IsRequired();
+
+            entity.Property(x => x.Status)
+                .HasColumnName("status")
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.Property(x => x.Name)
+                .HasColumnName("name")
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(x => x.Price)
+                .HasColumnName("price")
+                .HasColumnType("numeric(10,2)")
+                .IsRequired();
+
+            entity.Property(x => x.NumberOfPeople)
+                .HasColumnName("number_of_people")
+                .HasDefaultValue(1)
+                .IsRequired();
         });
 
         modelBuilder.Entity<User>(entity =>

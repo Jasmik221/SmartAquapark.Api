@@ -8,6 +8,7 @@ using SmartAquapark.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 namespace SmartAquapark.Api.Controllers;
 
+using Microsoft.AspNetCore.Authorization;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
@@ -21,6 +22,8 @@ public class ZonesController : ControllerBase
     }
 
     [HttpGet]
+    [HttpGet]
+    [Authorize]
     public async Task<IActionResult> GetAll()
     {
         var zones = await _zoneService.GetAllAsync();
@@ -28,7 +31,9 @@ public class ZonesController : ControllerBase
         return Ok(zones);
     }
 
+
     [HttpGet("{id}")]
+    [Authorize]
     public async Task<IActionResult> GetById(int id)
     {
         var zone = await _zoneService.GetByIdAsync(id);
@@ -40,6 +45,7 @@ public class ZonesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> Create(CreateZoneDto dto)
     {
         var zone = await _zoneService.CreateAsync(dto);
@@ -51,6 +57,7 @@ public class ZonesController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> Update(int id, UpdateZoneDto dto)
     {
         var updated = await _zoneService.UpdateAsync(id, dto);
@@ -62,6 +69,7 @@ public class ZonesController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
         var deleted = await _zoneService.DeleteAsync(id);

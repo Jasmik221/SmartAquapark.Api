@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+
 using SmartAquapark.Application.DTOs;
 
 namespace SmartAquapark.Application.Interfaces;

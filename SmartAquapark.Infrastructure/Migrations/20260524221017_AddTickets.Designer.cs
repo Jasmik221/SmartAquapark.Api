@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SmartAquapark.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using SmartAquapark.Infrastructure.Persistence;
 namespace SmartAquapark.Infrastructure.Migrations
 {
     [DbContext(typeof(AquaparkDbContext))]
-    partial class AquaparkDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260524221017_AddTickets")]
+    partial class AddTickets
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
