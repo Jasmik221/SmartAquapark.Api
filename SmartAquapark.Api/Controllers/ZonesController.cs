@@ -5,11 +5,12 @@ using SmartAquapark.Domain.Entities;
 using SmartAquapark.Infrastructure.Persistence;
 using SmartAquapark.Application.DTOs;
 using SmartAquapark.Application.Interfaces;
-
+using Microsoft.AspNetCore.Authorization;
 namespace SmartAquapark.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ZonesController : ControllerBase
 {
     private readonly IZoneService _zoneService;
