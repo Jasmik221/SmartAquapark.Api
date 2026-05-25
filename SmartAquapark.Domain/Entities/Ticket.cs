@@ -23,4 +23,5 @@ public class Ticket
     public decimal Price { get; set; }
 
     public int NumberOfPeople { get; set; } = 1;
+    public ICollection<Wristband> Wristbands { get; set; } = new List<Wristband>();
 }

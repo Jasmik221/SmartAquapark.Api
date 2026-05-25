@@ -16,6 +16,7 @@ public class AquaparkDbContext : DbContext
 
     public DbSet<Zone> Zones => Set<Zone>();
     public DbSet<Ticket> Tickets => Set<Ticket>();
+    public DbSet<Wristband> Wristbands => Set<Wristband>();
     public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -93,6 +94,44 @@ public class AquaparkDbContext : DbContext
                 .HasColumnName("number_of_people")
                 .HasDefaultValue(1)
                 .IsRequired();
+        });
+        modelBuilder.Entity<Wristband>(entity =>
+        {
+            entity.ToTable("wristbands");
+
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Id)
+                .HasColumnName("id");
+
+            entity.Property(x => x.QrCode)
+                .HasColumnName("qr_code")
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.HasIndex(x => x.QrCode)
+                .IsUnique();
+
+            entity.Property(x => x.ActivatedAt)
+                .HasColumnName("activated_at")
+                .IsRequired();
+
+            entity.Property(x => x.ExitTime)
+                .HasColumnName("exit_time");
+
+            entity.Property(x => x.Status)
+                .HasColumnName("status")
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.Property(x => x.TicketId)
+                .HasColumnName("ticket_id")
+                .IsRequired();
+
+            entity.HasOne(x => x.Ticket)
+                .WithMany(x => x.Wristbands)
+                .HasForeignKey(x => x.TicketId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<User>(entity =>
