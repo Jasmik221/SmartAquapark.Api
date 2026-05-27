@@ -100,4 +100,58 @@ public class GateService : IGateService
             Message = "Access granted."
         };
     }
+    public async Task<GateScanResponseDto> ExitAsync(GateExitDto dto)
+    {
+        var wristband = await _context.Wristbands
+            .Include(x => x.Ticket)
+            .FirstOrDefaultAsync(x => x.QrCode == dto.QrCode);
+
+        if (wristband == null)
+        {
+            return new GateScanResponseDto
+            {
+                AccessGranted = false,
+                Message = "Wristband not found."
+            };
+        }
+
+        if (wristband.Status != WristbandStatus.Active)
+        {
+            return new GateScanResponseDto
+            {
+                AccessGranted = false,
+                Message = "Wristband is not active."
+            };
+        }
+
+        var zone = await _context.Zones.FindAsync(dto.ZoneId);
+
+        if (zone == null)
+        {
+            return new GateScanResponseDto
+            {
+                AccessGranted = false,
+                Message = "Zone not found."
+            };
+        }
+
+        if (zone.CurrentPeopleCount > 0)
+            zone.CurrentPeopleCount--;
+
+        if (dto.FinishWristband)
+        {
+            wristband.Status = WristbandStatus.Finished;
+            wristband.ExitTime = DateTime.UtcNow;
+        }
+
+        await _context.SaveChangesAsync();
+
+        return new GateScanResponseDto
+        {
+            AccessGranted = true,
+            Message = dto.FinishWristband
+                ? "Exit granted. Wristband finished."
+                : "Exit granted."
+        };
+    }
 }

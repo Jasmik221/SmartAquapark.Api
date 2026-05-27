@@ -28,4 +28,15 @@ public class GatesController : ControllerBase
 
         return Ok(result);
     }
+    [HttpPost("exit")]
+    [Authorize(Roles = "Admin,Manager,Cashier")]
+    public async Task<IActionResult> Exit(GateExitDto dto)
+    {
+        var result = await _gateService.ExitAsync(dto);
+
+        if (!result.AccessGranted)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
 }

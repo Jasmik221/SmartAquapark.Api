@@ -9,4 +9,5 @@ namespace SmartAquapark.Application.Interfaces;
 public interface IGateService
 {
     Task<GateScanResponseDto> ScanAsync(GateScanDto dto);
+    Task<GateScanResponseDto> ExitAsync(GateExitDto dto);
 }
