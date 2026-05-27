@@ -19,6 +19,8 @@ public class AquaparkDbContext : DbContext
     public DbSet<Wristband> Wristbands => Set<Wristband>();
     public DbSet<User> Users => Set<User>();
 
+    public DbSet<ZoneVisit> ZoneVisits => Set<ZoneVisit>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Zone>(entity =>
@@ -131,6 +133,41 @@ public class AquaparkDbContext : DbContext
             entity.HasOne(x => x.Ticket)
                 .WithMany(x => x.Wristbands)
                 .HasForeignKey(x => x.TicketId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ZoneVisit>(entity =>
+        {
+            entity.ToTable("zone_visits");
+
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Id)
+                .HasColumnName("id");
+
+            entity.Property(x => x.WristbandId)
+                .HasColumnName("wristband_id")
+                .IsRequired();
+
+            entity.Property(x => x.ZoneId)
+                .HasColumnName("zone_id")
+                .IsRequired();
+
+            entity.Property(x => x.EnteredAt)
+                .HasColumnName("entered_at")
+                .IsRequired();
+
+            entity.Property(x => x.ExitedAt)
+                .HasColumnName("exited_at");
+
+            entity.HasOne(x => x.Wristband)
+                .WithMany(x => x.ZoneVisits)
+                .HasForeignKey(x => x.WristbandId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(x => x.Zone)
+                .WithMany(x => x.ZoneVisits)
+                .HasForeignKey(x => x.ZoneId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

@@ -21,4 +21,6 @@ public class Wristband
     public int TicketId { get; set; }
 
     public Ticket Ticket { get; set; } = null!;
+
+    public ICollection<ZoneVisit> ZoneVisits { get; set; } = new List<ZoneVisit>();
 }

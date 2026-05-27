@@ -17,5 +17,6 @@ namespace SmartAquapark.Domain.Entities
         public int CurrentPeopleCount { get; set; } = 0;
 
         public bool IsActive { get; set; } = true;
+        public ICollection<ZoneVisit> ZoneVisits { get; set; } = new List<ZoneVisit>();
     }
 }

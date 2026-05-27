@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SmartAquapark.Application.DTOs;
 using SmartAquapark.Application.Interfaces;
+using SmartAquapark.Domain.Entities;
 using SmartAquapark.Domain.Enums;
 using SmartAquapark.Infrastructure.Persistence;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace SmartAquapark.Infrastructure.Services;
 
@@ -92,6 +92,15 @@ public class GateService : IGateService
 
         zone.CurrentPeopleCount++;
 
+        var visit = new ZoneVisit
+        {
+            WristbandId = wristband.Id,
+            ZoneId = zone.Id,
+            EnteredAt = DateTime.UtcNow
+        };
+
+        _context.ZoneVisits.Add(visit);
+
         await _context.SaveChangesAsync();
 
         return new GateScanResponseDto
@@ -142,6 +151,19 @@ public class GateService : IGateService
         {
             wristband.Status = WristbandStatus.Finished;
             wristband.ExitTime = DateTime.UtcNow;
+        }
+
+        var activeVisit = await _context.ZoneVisits
+    .Where(x =>
+        x.WristbandId == wristband.Id &&
+        x.ZoneId == zone.Id &&
+        x.ExitedAt == null)
+    .OrderByDescending(x => x.EnteredAt)
+    .FirstOrDefaultAsync();
+
+        if (activeVisit != null)
+        {
+            activeVisit.ExitedAt = DateTime.UtcNow;
         }
 
         await _context.SaveChangesAsync();
