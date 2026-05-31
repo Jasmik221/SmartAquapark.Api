@@ -25,6 +25,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IGateService, GateService>();
 builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<IWristbandService, WristbandService>();
+builder.Services.AddScoped<IVisitService, VisitService>();
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
