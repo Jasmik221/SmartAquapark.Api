@@ -8,6 +8,7 @@ using SmartAquapark.Application.Interfaces;
 using SmartAquapark.Application.Validators;
 using SmartAquapark.Infrastructure.Persistence;
 using SmartAquapark.Infrastructure.Services;
+using SmartAquapark.Api.Middleware;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -86,6 +87,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseSwagger();
 app.UseSwaggerUI();

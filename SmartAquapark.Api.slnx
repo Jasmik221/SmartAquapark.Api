@@ -3,4 +3,5 @@
   <Project Path="SmartAquapark.Application/SmartAquapark.Application.csproj" />
   <Project Path="SmartAquapark.Domain/SmartAquapark.Domain.csproj" />
   <Project Path="SmartAquapark.Infrastructure/SmartAquapark.Infrastructure.csproj" />
+  <Project Path="SmartAquapark.Tests/SmartAquapark.Tests.csproj" Id="425c3d72-ad67-45c4-acda-8b501217bd6e" />
 </Solution>
