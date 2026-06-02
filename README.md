@@ -92,9 +92,13 @@ The project uses a layered architecture:
 
 ## Screenshots
 
-### Swagger Overview
+### Swagger API Overview
 
-![Swagger Overview](docs/screenshots/swagger-overview.png)
+![Swagger Overview 1](docs/screenshots/swagger-overview-1.png)
+
+![Swagger Overview 2](docs/screenshots/swagger-overview-2.png)
+
+![Swagger Overview 3](docs/screenshots/swagger-overview-3.png)
 
 ### JWT Authorization
 
