@@ -4,3 +4,11 @@
 .git/
 .gitignore
 README.md
+.env
+.env.*
+TestResults/
+diagnostics/
+.cache/
+*.tar
+*-vulnerabilities.json
+source-secrets.json

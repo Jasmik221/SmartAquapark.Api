@@ -1,0 +1,145 @@
+name: CI and container delivery
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Build, test and audit dependencies
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Restore and audit direct and transitive dependencies
+        run: dotnet restore SmartAquapark.Api.slnx -p:NuGetAudit=true -p:NuGetAuditMode=all -p:NuGetAuditLevel=high -warnaserror:NU1900,NU1903,NU1904
+      - name: Build
+        run: dotnet build SmartAquapark.Api.slnx -c Release --no-restore
+      - name: Test
+        run: dotnet test SmartAquapark.Api.slnx -c Release --no-build --logger trx --collect:"XPlat Code Coverage" --results-directory TestResults
+      - name: Upload test results and coverage
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: test-results
+          path: TestResults/
+          retention-days: 7
+
+  container:
+    name: Build, scan and smoke-test container
+    needs: test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      API_IMAGE: smartaquapark-api:ci
+      COMPOSE_PROJECT_NAME: smartaquapark-ci
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Scan tracked source for secrets
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: secret
+          exit-code: '1'
+          format: json
+          output: source-secrets.json
+      - name: Generate isolated development credentials
+        run: python3 scripts/create-dev-env.py
+      - name: Validate Compose and build runtime image
+        run: |
+          docker compose config --quiet
+          docker compose build --pull api
+      - name: Scan image for fixable high and critical vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: smartaquapark-api:ci
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+          format: json
+          output: image-vulnerabilities.json
+          skip-setup-trivy: true
+      - name: Start API and PostgreSQL and wait for readiness
+        run: docker compose up -d --no-build --wait --wait-timeout 120
+      - name: Verify database-backed authentication and health endpoints
+        run: python3 scripts/smoke-test.py
+      - name: Save the tested image for publication
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: docker save smartaquapark-api:ci -o container-image.tar
+      - name: Upload the tested image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: container-image
+          path: container-image.tar
+          retention-days: 1
+      - name: Collect diagnostics
+        if: always()
+        run: |
+          mkdir -p diagnostics
+          docker compose ps --all > diagnostics/compose-status.txt
+          docker compose logs --no-color > diagnostics/compose.log 2>&1
+      - name: Upload scan reports and diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: container-reports
+          path: |
+            source-secrets.json
+            image-vulnerabilities.json
+            diagnostics/
+          retention-days: 7
+      - name: Clean up isolated CI containers and database
+        if: always()
+        run: docker compose down --volumes --remove-orphans
+
+  publish:
+    name: Publish tested image to GHCR
+    needs: [test, container]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: container-image
+      - name: Load tested image and determine lowercase registry path
+        env:
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          docker load -i container-image.tar
+          echo "IMAGE=ghcr.io/${REPOSITORY,,}" >> "$GITHUB_ENV"
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Tag and publish the exact image that passed scanning and tests
+        run: |
+          docker tag smartaquapark-api:ci "$IMAGE:sha-$GITHUB_SHA"
+          docker tag smartaquapark-api:ci "$IMAGE:latest"
+          docker push "$IMAGE:sha-$GITHUB_SHA"
+          docker push "$IMAGE:latest"
