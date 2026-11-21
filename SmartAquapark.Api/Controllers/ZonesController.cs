@@ -3,12 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using SmartAquapark.Application.DTOs;
 using SmartAquapark.Domain.Entities;
 using SmartAquapark.Infrastructure.Persistence;
-using SmartAquapark.Application.DTOs;
 using SmartAquapark.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 namespace SmartAquapark.Api.Controllers;
 
-using Microsoft.AspNetCore.Authorization;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
