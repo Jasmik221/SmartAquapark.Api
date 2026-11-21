@@ -361,3 +361,14 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Local credentials and pipeline outputs
+.env
+.env.*
+!.env.example
+TestResults/
+diagnostics/
+.cache/
+container-image.tar
+source-secrets.json
+image-vulnerabilities.json

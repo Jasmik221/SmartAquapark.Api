@@ -1,31 +1,37 @@
 services:
   api:
+    image: ${API_IMAGE:-smartaquapark-api:local}
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: smartaquapark-api
     ports:
-      - "8080:8080"
+      - "127.0.0.1:${API_PORT:-8080}:8080"
     environment:
-      ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=smart_aquapark;Username=postgres;Password=postgres
-      Jwt__Key: THIS_IS_A_SUPER_SECRET_KEY_FOR_SMART_AQUAPARK_API_123456789
+      ASPNETCORE_HTTP_PORTS: 8080
+      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=smart_aquapark;Username=postgres;Password=${POSTGRES_PASSWORD:?Run python scripts/create-dev-env.py first}
+      Jwt__Key: ${JWT_KEY:?Run python scripts/create-dev-env.py first}
       Jwt__Issuer: SmartAquaparkApi
       Jwt__Audience: SmartAquaparkClient
       Jwt__ExpirationMinutes: 60
+      # Single-instance local demo only; production migrations should run separately.
+      Database__ApplyMigrationsOnStartup: "true"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   db:
     image: postgres:16
-    container_name: smartaquapark-db
-    restart: always
     environment:
       POSTGRES_DB: smart_aquapark
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run python scripts/create-dev-env.py first}
     ports:
-      - "5433:5432"
+      - "127.0.0.1:${DB_PORT:-5433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
     volumes:
       - smartaquapark-db-data:/var/lib/postgresql/data
 

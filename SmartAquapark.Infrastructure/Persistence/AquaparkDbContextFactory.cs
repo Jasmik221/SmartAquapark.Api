@@ -13,8 +13,10 @@ public class AquaparkDbContextFactory : IDesignTimeDbContextFactory<AquaparkDbCo
     {
         var optionsBuilder = new DbContextOptionsBuilder<AquaparkDbContext>();
 
-        optionsBuilder.UseNpgsql(
-            "Host=localhost;Port=5432;Database=smart_aquapark;Username=postgres;Password=123");
+        var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+            ?? throw new InvalidOperationException(
+                "Set ConnectionStrings__DefaultConnection before running EF Core commands.");
+        optionsBuilder.UseNpgsql(connectionString);
 
         return new AquaparkDbContext(optionsBuilder.Options);
     }
